@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a0810">
+  <meta name="description" content="Fair ticket drops for popular student events: one ticket per person, never oversold, with a fair waitlist.">
+  <title>Ticket Drop · Fair tickets for student events</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700;800&family=Manrope:wght@400;600;700;800&family=Unbounded:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="bar">
+    <a class="brand" id="brand" href="index.html">Ticket Drop</a>
+    <div id="header"></div>
+  </header>
+  <main>
+    <section class="hero">
+      <span class="eyebrow"><span class="live-dot" aria-hidden="true"></span> Live drops</span>
+      <h1>Get in before <span class="fire-text">it's gone.</span></h1>
+      <p class="muted">Popular events sell out in seconds. Ticket Drop keeps it fair: speed matters, but nobody can grab more than their share.</p>
+      <ul class="pillars" id="pillars"></ul>
+    </section>
+    <h2 class="section-title">Upcoming events</h2>
+    <ul id="events" class="events" aria-live="polite" aria-busy="true">
+      <li class="skeleton"></li><li class="skeleton"></li><li class="skeleton"></li>
+    </ul>
+  </main>
+  <footer class="footer"><strong>Fair by design.</strong> One ticket per person · never oversold · first come, first served waitlist.</footer>
+  <script type="module" src="js/index.js"></script>
+</body>
+</html>

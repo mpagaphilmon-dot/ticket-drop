@@ -1,0 +1,16 @@
+{
+  "name": "ticket-drop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Fair ticket claiming for popular student events (Firebase Spark plan).",
+  "type": "module",
+  "scripts": {
+    "test": "firebase emulators:exec --only firestore,auth --project demo-ticket-drop \"node --test --test-concurrency=1 test/*.test.js\"",
+    "dev": "firebase emulators:start --only firestore,auth,hosting --project demo-ticket-drop",
+    "seed": "node scripts/seed.js"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "5.0.2",
+    "firebase": "12.19.0"
+  }
+}
