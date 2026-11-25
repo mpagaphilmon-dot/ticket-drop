@@ -1,0 +1,134 @@
+rules_version = '2';
+
+// Ticket Drop security rules.
+// There is no server code: the browser writes directly, so these rules are what
+// enforce the spec (docs/SPEC.md). Every action is checked from BOTH sides:
+// the event write must match a ticket/waitlist write in the same transaction,
+// and the ticket/waitlist write must match the event write.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isUser(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+    function eventDoc(e) {
+      return /databases/$(database)/documents/events/$(e);
+    }
+    function ticketDoc(e, uid) {
+      return /databases/$(database)/documents/events/$(e)/tickets/$(uid);
+    }
+    function waitDoc(e, uid) {
+      return /databases/$(database)/documents/events/$(e)/waitlist/$(uid);
+    }
+
+    // Event before and after the current transaction.
+    function before(e) {
+      return get(eventDoc(e)).data;
+    }
+    function after(e) {
+      return getAfter(eventDoc(e)).data;
+    }
+
+    // ---- The three ways an event's counters may change ----
+
+    // Claim a free seat (R2, R3): one fewer seat, and this user's ticket is new.
+    function isClaim(e) {
+      let uid = request.auth.uid;
+      return after(e).seatsLeft == before(e).seatsLeft - 1
+        && after(e).seatsLeft >= 0
+        && after(e).waitNext == before(e).waitNext
+        && after(e).waitServed == before(e).waitServed
+        && !exists(ticketDoc(e, uid))
+        && existsAfter(ticketDoc(e, uid));
+    }
+
+    // Cancel (R6): this user's ticket is removed. If someone is waiting, the seat
+    // is held for the next waitlist position; otherwise it goes back to seatsLeft.
+    function isCancel(e) {
+      let uid = request.auth.uid;
+      let b = before(e);
+      let a = after(e);
+      let removed = exists(ticketDoc(e, uid)) && !existsAfter(ticketDoc(e, uid));
+      let handToWaitlist = b.waitServed < b.waitNext
+        && a.waitServed == b.waitServed + 1
+        && a.seatsLeft == b.seatsLeft
+        && a.waitNext == b.waitNext;
+      let backToPool = b.waitServed == b.waitNext
+        && a.seatsLeft == b.seatsLeft + 1
+        && a.seatsLeft <= b.capacity
+        && a.waitServed == b.waitServed
+        && a.waitNext == b.waitNext;
+      return removed && (handToWaitlist || backToPool);
+    }
+
+    // Join the waitlist (R5): only when sold out, only without a ticket,
+    // and the new entry takes exactly the next position.
+    function isJoin(e) {
+      let uid = request.auth.uid;
+      let b = before(e);
+      let a = after(e);
+      return b.seatsLeft == 0
+        && a.seatsLeft == 0
+        && a.waitNext == b.waitNext + 1
+        && a.waitServed == b.waitServed
+        && !exists(ticketDoc(e, uid))
+        && !exists(waitDoc(e, uid))
+        && existsAfter(waitDoc(e, uid))
+        && getAfter(waitDoc(e, uid)).data.pos == b.waitNext;
+    }
+
+    match /events/{e} {
+      // R1: anyone, signed in or not, can see an event and its seats left.
+      allow read: if true;
+      // Events are created by the organiser (console / seed script), never the browser.
+      allow create, delete: if false;
+      allow update: if signedIn()
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['seatsLeft', 'waitNext', 'waitServed'])
+        && (isClaim(e) || isCancel(e) || isJoin(e));
+
+      match /tickets/{uid} {
+        allow read: if isUser(uid);
+        allow update: if false;
+
+        // A ticket is created either by taking a free seat (seatsLeft drops by 1,
+        // and the user is not on the waitlist) or by claiming a seat held for the
+        // user (their waitlist position has been served; the entry is consumed).
+        allow create: if isUser(uid)
+          && request.resource.data.keys().hasOnly(['code', 'createdAt'])
+          && request.resource.data.code is string
+          && request.resource.data.code.size() == 8
+          && request.resource.data.createdAt == request.time
+          && (
+            (after(e).seatsLeft == before(e).seatsLeft - 1
+              && !exists(waitDoc(e, uid)))
+            ||
+            (exists(waitDoc(e, uid))
+              && get(waitDoc(e, uid)).data.pos < before(e).waitServed
+              && !existsAfter(waitDoc(e, uid))
+              && after(e).seatsLeft == before(e).seatsLeft)
+          );
+
+        // Only the owner can cancel, and only together with a valid event update.
+        allow delete: if isUser(uid) && isCancel(e);
+      }
+
+      match /waitlist/{uid} {
+        allow read: if isUser(uid);
+        allow update: if false;
+        allow create: if isUser(uid)
+          && request.resource.data.keys().hasOnly(['pos', 'joinedAt'])
+          && request.resource.data.joinedAt == request.time
+          && isJoin(e);
+        // A waitlist entry is only removed by turning it into a ticket (held seat).
+        allow delete: if isUser(uid)
+          && !exists(ticketDoc(e, uid))
+          && existsAfter(ticketDoc(e, uid));
+      }
+    }
+  }
+}

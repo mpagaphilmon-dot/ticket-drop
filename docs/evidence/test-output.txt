@@ -1,0 +1,45 @@
+# npm test evidence — 2026-11-25 22:38 SAST
+# node v22.16.0, firebase-tools 15.16.0, firebase SDK 12.19.0
+✔ 50 users claim 10 seats at the same moment: exactly 10 succeed (9865.7448ms)
+▶ R1 the page shows seats left
+  ✔ a visitor who is not signed in can read the event and seatsLeft (639.1995ms)
+  ✔ a visitor cannot read anyone's ticket (391.4933ms)
+✔ R1 the page shows seats left (1215.3505ms)
+▶ R2 one ticket per person per event
+  ✔ claiming again returns the same ticket and takes one seat (385.8175ms)
+  ✔ attack: a user cannot create a ticket for someone else (202.3923ms)
+  ✔ attack: a user cannot read someone else's ticket (235.1004ms)
+✔ R2 one ticket per person per event (825.5321ms)
+▶ R3 never issue more tickets than seats
+  ✔ attack: a ticket without lowering seatsLeft is refused (183.4591ms)
+  ✔ attack: lowering seatsLeft by 2 for one ticket is refused (134.7378ms)
+  ✔ attack: seatsLeft cannot go below 0 (128.9683ms)
+  ✔ attack: raising seatsLeft or capacity directly is refused (190.8555ms)
+  ✔ attack: lowering seatsLeft without a new ticket is refused (133.1306ms)
+✔ R3 never issue more tickets than seats (773.6834ms)
+▶ R4 tapping twice or retrying claims only once
+  ✔ two simultaneous claims by the same user give one ticket and one decrement (470.8465ms)
+✔ R4 tapping twice or retrying claims only once (471.6692ms)
+▶ R5 sold out is clear and offers a waitlist
+  ✔ a claim when sold out returns sold-out and creates no ticket (204.4974ms)
+  ✔ joining gives a position; joining twice keeps one place (346.8501ms)
+  ✔ cannot join the waitlist while seats are left (175.7188ms)
+  ✔ cannot join the waitlist while holding a ticket (167.8733ms)
+  ✔ attack: cannot take a waitlist position other than the next one (179.004ms)
+✔ R5 sold out is clear and offers a waitlist (1075.2557ms)
+▶ R6 cancelling frees the seat for the next person on the waitlist
+  ✔ a cancelled seat is held for the first waiting person, and only they can claim it (789.6618ms)
+  ✔ attack: someone not served yet cannot claim the held seat (470.5402ms)
+  ✔ attack: someone not on the waitlist cannot take the held seat (475.2436ms)
+  ✔ with nobody waiting, cancelling adds the seat back (366.3756ms)
+  ✔ attack: only the owner can cancel a ticket (179.8662ms)
+  ✔ attack: cancel cannot give back more than one seat (166.9825ms)
+✔ R6 cancelling frees the seat for the next person on the waitlist (2449.9358ms)
+ℹ tests 23
+ℹ suites 6
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 19469.8705
