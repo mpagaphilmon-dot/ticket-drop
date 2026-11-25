@@ -2,8 +2,6 @@
 
 **Philmon Mpaga** · The AI Colony Academy · AI for Software Engineering, Week 8 Capstone · 25 November 2026
 
-> Draft prepared with AI assistance from my build notes. I have read it, and I edit it into my own words before submitting.
-
 My capstone was Ticket Drop, where the hard part is many students claiming the last seats at the same
 moment. I built it on Firebase's free plan with plain HTML, CSS and JavaScript; it is live at ticketing-drop.web.app.
 
@@ -37,8 +35,8 @@ otherwise give a new identity and defeat the one-ticket rule. All text is insert
 The known limitation is that the rule is one ticket per account, not per human; that is in the handoff.
 
 **AI-use declaration.** I used Claude Code (Claude Opus 5.5) throughout: to draft the spec, security
-rules, application code, tests, styling and documentation, and to run commands for testing and
-deployment. I set the direction and made the decisions: the idea and its scope, Firebase's free plan
+rules, application code, tests, styling and documentation (including this reflection, drafted from my
+build notes and reviewed by me), and to run commands for testing and deployment. I set the direction and made the decisions: the idea and its scope, Firebase's free plan
 over a paid plan or my own server, email sign-in, the held-seat waitlist design, and approving each
 milestone. I reviewed the generated code, rejected or changed the suggestions listed in my reject log,
 and verified behaviour with tests and in the browser. I can explain every rule, test and design decision
